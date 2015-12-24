@@ -1,0 +1,37 @@
+#######################################
+# Syntax Coloring Map For Q2HX711
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Q2Balance				KEYWORD1	Q2Balance
+BalanceCalibrationStruct  KEYWORD1  BalanceCalibrationStruct
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+TARELIMIT				KEYWORD2
+JUMPLIMIT				KEYWORD2
+SAMPLE_COUNT				KEYWORD2
+taring				KEYWORD2
+tared				KEYWORD2
+settling				KEYWORD2
+adjustedValue				KEYWORD2
+adjustedRawValue				KEYWORD2
+smoothValue				KEYWORD2
+rawValue				KEYWORD2
+jitter				KEYWORD2
+calibrateZero				KEYWORD2
+calibrate				KEYWORD2
+measure				KEYWORD2
+tare				KEYWORD2
+settle				KEYWORD2
+setCalibration				KEYWORD2
+tick				KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################

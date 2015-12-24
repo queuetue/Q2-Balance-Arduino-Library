@@ -38,7 +38,7 @@ void Q2Balance::setCalibration(BalanceCalibrationStruct newSettings){
 
 void Q2Balance::tick(){
   unsigned long now = millis();
-  char buffer[128];
+  // char buffer[128];
 
   if (_settling){
     if (_smoothValue < _settleMinVal){
@@ -49,7 +49,6 @@ void Q2Balance::tick(){
     }
     _jitter = _settleMaxVal - _settleMinVal;
     if (now > _settleTimeout){
-      Serial.println("SETTLED");
       _settling = false;
     } else {
       return;
@@ -57,7 +56,6 @@ void Q2Balance::tick(){
   }
 
   if(_taring){
-    Serial.println("TARED");
     _taring = false;
     _tared = true;
     _smoothValue = _rawValue;
@@ -65,12 +63,10 @@ void Q2Balance::tick(){
   }
 
   if (_tared && abs(_rawValue - _tareValue) > TARELIMIT){
-    Serial.println("EXTARED");
     _tared = false;
   }
 
   if (_calibratingZero) {
-    Serial.println("CALIBRATE ZERO");
     _settings.calibrationZero = _smoothValue;
     _calibratingZero = false;
     _calibrating = false;
@@ -90,18 +86,17 @@ void Q2Balance::tick(){
     char str_scale[22];
     dtostrf(_settings.calibrationScaler[_calibrationIndex], 2, 18, str_scale);
 
-    printCalibration(_calibrationIndex);
-    sprintf(buffer, "CALIBRATE IDX %d MEASURED %ld / (SMOOTH %ld ZERO %ld) = SCALER %s DELTA %s --",
-      _calibrationIndex,
-      _settings.calibrationMeasured[_calibrationIndex],
-      _smoothValue,
-      _settings.calibrationZero,
-      str_scale,
-      str_delta
-    );
-    Serial.println(buffer);
+    // printCalibration(_calibrationIndex);
+    // sprintf(buffer, "CALIBRATE IDX %d MEASURED %ld / (SMOOTH %ld ZERO %ld) = SCALER %s DELTA %s --",
+    //   _calibrationIndex,
+    //   _settings.calibrationMeasured[_calibrationIndex],
+    //   _smoothValue,
+    //   _settings.calibrationZero,
+    //   str_scale,
+    //   str_delta
+    // );
+    // Serial.println(buffer);
     sortCalibrations();
-    Serial.println("SORTED");
   }
 }
 
@@ -130,15 +125,12 @@ bool Q2Balance::tared(){
 };
 
 void Q2Balance::calibrateZero(long settleTime){
-  Serial.println("TRIGGER CALIBRATE ZERO");
   _calibratingZero = true;
   _calibrating = true;
   settle(settleTime);
 }
 
 void Q2Balance::calibrate(int index, long measurement, long settleTime){
-  Serial.println("TRIGGER CALIBRATE");
-  Serial.println(index);
   if (index < 9){
     _calibrating = true;
     _calibrationIndex = index;
@@ -173,10 +165,9 @@ long Q2Balance::jitter(){
 
 float Q2Balance::adjustedValue(){
   long val;
-  char buffer[128];
+  // char buffer[128];
 
   int index = findCalibrationWindow(_smoothValue);
-  Serial.println(index);
 
   if(_settings.calibrationZero == 0){
     return 0; //unzeroed
@@ -191,26 +182,25 @@ float Q2Balance::adjustedValue(){
   }
   val = _smoothValue - _tareValue;
   if (_tared){
-    Serial.println("tared");
     return (0);
   }
 
   float scaled = round(val * _settings.calibrationScaler[index] * 100.0)/100.0;
 
-  char str_scaled[16];
-  dtostrf(scaled, 6, 4, str_scaled);
-
-  char str_scaler[16];
-  dtostrf(_settings.calibrationScaler[index], 2, 10, str_scaler);
-
-  sprintf(buffer, "ADJV IDX %d SMOOTH %ld VAL %ld SCALER %s SCALED %s ",
-    index,
-    _smoothValue,
-    val,
-    str_scaler,
-    str_scaled
-  );
-  Serial.println(buffer);
+  // char str_scaled[16];
+  // dtostrf(scaled, 6, 4, str_scaled);
+  //
+  // char str_scaler[16];
+  // dtostrf(_settings.calibrationScaler[index], 2, 10, str_scaler);
+  //
+  // sprintf(buffer, "ADJV IDX %d SMOOTH %ld VAL %ld SCALER %s SCALED %s ",
+  //   index,
+  //   _smoothValue,
+  //   val,
+  //   str_scaler,
+  //   str_scaled
+  // );
+  // Serial.println(buffer);
   return scaled;
 }
 
@@ -238,7 +228,6 @@ void Q2Balance::printCalibration(int index){
   char buffer[128];
   char str_scaler[16];
   dtostrf(_settings.calibrationScaler[index], 6, 6, str_scaler);
-  sprintf(buffer, "SCALE 5   %s",str_scaler);
   sprintf(buffer, "IDX %d ZERO %ld MV %ld M %ld SC %s",
     index,
     _settings.calibrationZero,
@@ -251,7 +240,6 @@ void Q2Balance::printCalibration(int index){
 
 int Q2Balance::findCalibrationWindow(long voltage){
   int i;
-  // printCalibrations();
   for (i = 0; i < 10; i++)
   {
     if (_settings.calibrationMV[i] >= voltage){
@@ -262,7 +250,6 @@ int Q2Balance::findCalibrationWindow(long voltage){
 }
 
 void Q2Balance::sortCalibrations(){
-  printCalibrations();
   long mv, measured;
   float scaler;
   int n = 10,c,d;
@@ -285,5 +272,5 @@ void Q2Balance::sortCalibrations(){
       }
     }
   }
-  printCalibrations();
+  // printCalibrations();
 }

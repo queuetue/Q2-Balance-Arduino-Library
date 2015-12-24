@@ -28,7 +28,6 @@ class Q2Balance
     long _settleMaxVal = 0;
     long _jitter = 0;
     int _calibrationIndex;
-    //byte _calibrationLookup[10];
     void sortCalibrations();
     int findCalibrationWindow(long voltage);
     void printCalibration(int index);

@@ -1,5 +1,8 @@
 # Queuetue Balance Arduino Library
 
+Copyright (c) 2015 Scott Russell (scott@queuetue.com), released under the MIT license.  
+See the LICENSE file for licensing details.
+
 A Digital balance library for creating scales on the Arduino, including smoothing, taring and calibration.
 
 ## Class

@@ -28,11 +28,11 @@ none | tick | Balance main processing (taring, settling, calibration).  Call fre
 
 ## Settings
 
-Setting  | Default |Description
-------------- | ------------- | -------------
-long TARELIMIT | 110 | Tare will be "broken" when the measurement's absolute distance from the last tare exceeds this amount.
-long JUMPLIMIT | 200 | If the measurement changes more than this distance from the last measurement, stop smoothing and jump to the new value.
-long SAMPLE_COUNT | 10 | The number of samples to use for smoothing.
+Type | Setting  | Default |Description
+------------- |------------- | ------------- | -------------
+long | TARELIMIT | 110 | Tare will be "broken" when the measurement's absolute distance from the last tare exceeds this amount.
+long | JUMPLIMIT | 200 | If the measurement changes more than this distance from the last measurement, stop smoothing and jump to the new value.
+long | SAMPLE_COUNT | 10 | The number of samples to use for smoothing.
 
 ## Example
 

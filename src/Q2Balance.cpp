@@ -60,6 +60,10 @@ void Q2Balance::tick(){
     _tared = true;
     _smoothValue = _rawValue;
     _tareValue = _rawValue;
+    if (_afterCalibrated!=NULL){
+      (*_afterCalibrated)();
+      _afterCalibrated = NULL;
+    }
   }
 
   if (_tared && abs(_smoothValue - _tareValue) > TARELIMIT){
@@ -85,6 +89,12 @@ void Q2Balance::tick(){
 
     _calibratingZero = false;
     _calibrating = false;
+
+    if (_afterCalibrated!=NULL){
+      (*_afterCalibrated)();
+      _afterCalibrated = NULL;
+    }
+
   }
 
   if (_calibrating) {
@@ -105,7 +115,10 @@ void Q2Balance::tick(){
       Serial.println(buffer);
       printCalibrations();
     #endif
-
+    if (_afterCalibrated!=NULL){
+      (*_afterCalibrated)();
+      _afterCalibrated = NULL;
+    }
   }
 }
 
@@ -120,9 +133,12 @@ bool Q2Balance::settling(){
   return _settling;
 };
 
-void Q2Balance::tare(long settleTime){
-  _taring = true;
-  settle(settleTime);
+void Q2Balance::tare(long settleTime, void (*afterTared)(void)){
+  if (!_calibrating && !_settling){
+    _taring = true;
+    _afterCalibrated = afterTared;
+    settle(settleTime);
+  }
 }
 
 bool Q2Balance::taring(){
@@ -133,24 +149,30 @@ bool Q2Balance::tared(){
   return _tared;
 };
 
-void Q2Balance::calibrateZero(long settleTime){
-  #ifdef Q2BALANCE_DEBUG
-    Serial.println("ZERO");
-  #endif
-  _calibratingZero = true;
-  _calibrating = true;
-  settle(settleTime);
+void Q2Balance::calibrateZero(long settleTime, void (*afterCalibrated)(void)){
+  if (!_calibrating && !_settling){
+    #ifdef Q2BALANCE_DEBUG
+      Serial.println("ZERO");
+    #endif
+    _afterCalibrated = afterCalibrated;
+    _calibratingZero = true;
+    _calibrating = true;
+    settle(settleTime);
+  }
 }
 
-void Q2Balance::calibrate(int index, long measurement, long settleTime){
-  #ifdef Q2BALANCE_DEBUG
-    Serial.println("CALIBRATE");
-  #endif
-  if (index < Q2BALANCE_MARKER_COUNT){
-    _calibrating = true;
-    _calibrationIndex = index;
-    _settings.calibrationMeasured[index] = measurement;
-    settle(settleTime);
+void Q2Balance::calibrate(int index, long measurement, long settleTime, void (*afterCalibrated)(void)){
+  if (!_calibrating && !_settling){
+    #ifdef Q2BALANCE_DEBUG
+      Serial.println("CALIBRATE");
+    #endif
+    if (index < Q2BALANCE_MARKER_COUNT){
+      _afterCalibrated = afterCalibrated;
+      _calibrating = true;
+      _calibrationIndex = index;
+      _settings.calibrationMeasured[index] = measurement;
+      settle(settleTime);
+    }
   }
 }
 
@@ -235,6 +257,9 @@ float Q2Balance::adjustedRawValue(int units){
 }
 
 void Q2Balance::printCalibrations(){
+  char buffer[128];
+  sprintf(buffer, "ZERO %ld ",_settings.calibrationZero);
+  Serial.println(buffer);
   for(int c=0;c<Q2BALANCE_MARKER_COUNT;c++){
     printCalibration(c);
   }
@@ -244,14 +269,13 @@ void Q2Balance::printCalibration(int index){
   char buffer[128];
   char str_scaler[16];
   dtostrf(_settings.calibrationScaler[index], 6, 6, str_scaler);
-  sprintf(buffer, "IDX %d ZERO %ld MV %ld M %ld SC %s",
+  sprintf(buffer, "IDX %dMV %ld M %ld SC %s",
     index,
-    _settings.calibrationZero,
     _settings.calibrationMV[index],
     _settings.calibrationMeasured[index],
     str_scaler
   );
-  Serial.print(buffer);
+  Serial.println(buffer);
 }
 
 int Q2Balance::findCalibrationWindow(long voltage){

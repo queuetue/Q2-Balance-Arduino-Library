@@ -38,10 +38,9 @@ class Q2Balance
     long _settleMaxVal = 0;
     long _jitter = 0;
     int _calibrationIndex;
+    void (*_afterCalibrated)(void);
     void sortCalibrations();
     int findCalibrationWindow(long voltage);
-    void printCalibration(int index);
-    void printCalibrations();
     float calcValue(int units, long value);
   public:
     long TARELIMIT = 110;
@@ -58,14 +57,16 @@ class Q2Balance
     long smoothValue();
     long rawValue();
     long jitter();
-    void calibrateZero(long milliseconds);
-    void calibrate(int index, long measurement,long milliseconds);
+    void calibrateZero(long milliseconds, void (*afterCalibrated)(void));
+    void calibrate(int index, long measurement, long milliseconds, void (*afterCalibrated)(void));
     void measure(long measurement);
-    void tare(long milliseconds);
+    void tare(long milliseconds, void (*afterTared)(void));
     long settle(long milliseconds);
     BalanceCalibrationStruct getCalibration();
     void setCalibration(BalanceCalibrationStruct newSettings);
     void tick();
+    void printCalibration(int index);
+    void printCalibrations();
 };
 
 #endif /* q2balance_h */

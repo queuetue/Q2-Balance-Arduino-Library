@@ -6,7 +6,7 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-Q2Balance				KEYWORD1	Q2Balance
+Q2Balance				KEYWORD1 Q2Balance
 BalanceCalibrationStruct  KEYWORD1  BalanceCalibrationStruct
 
 #######################################
@@ -35,3 +35,13 @@ tick				KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+Q2BALANCE_MARKER_COUNT  LITERAL1
+Q2BALANCE_UNIT_GRAM  LITERAL1
+Q2BALANCE_UNIT_POUND  LITERAL1
+Q2BALANCE_UNIT_OUNCE  LITERAL1
+Q2BALANCE_UNIT_GRAIN  LITERAL1
+Q2BALANCE_UNIT_TROY  LITERAL1
+Q2BALANCE_UNIT_PWT  LITERAL1
+Q2BALANCE_UNIT_CARAT  LITERAL1
+Q2BALANCE_UNIT_NEWTON  LITERAL1

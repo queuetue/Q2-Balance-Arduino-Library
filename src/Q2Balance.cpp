@@ -2,7 +2,7 @@
 
 Q2Balance::Q2Balance(){
   _settings.calibrationZero = 0;
-  for(int i = 0;i<10;i++)
+  for(int i = 0;i<Q2BALANCE_MARKER_COUNT;i++)
   {
     _settings.calibrationMV[i]= 0;
     _settings.calibrationMeasured[i] = 0;
@@ -16,7 +16,7 @@ Q2Balance::~Q2Balance(){
 BalanceCalibrationStruct Q2Balance::getCalibration(){
   BalanceCalibrationStruct newSettings;
   newSettings.calibrationZero = _settings.calibrationZero;
-  for(int i = 0;i<10;i++)
+  for(int i = 0;i<Q2BALANCE_MARKER_COUNT;i++)
   {
     newSettings.calibrationMV[i] = _settings.calibrationMV[i];
     newSettings.calibrationMeasured[i] = _settings.calibrationMeasured[i];
@@ -33,14 +33,14 @@ void Q2Balance::setCalibration(BalanceCalibrationStruct newSettings){
     _settings.calibrationMeasured[i] = newSettings.calibrationMeasured[i];
     _settings.calibrationScaler[i] = newSettings.calibrationScaler[i];
   }
-  //sortCalibrations();
 }
 
 void Q2Balance::tick(){
   unsigned long now = millis();
-  // char buffer[128];
-
   if (_settling){
+    #ifdef Q2BALANCE_DEBUG
+      Serial.println("SETTLING");
+    #endif
     if (_smoothValue < _settleMinVal){
       _settleMinVal = _smoothValue;
     }
@@ -62,12 +62,27 @@ void Q2Balance::tick(){
     _tareValue = _rawValue;
   }
 
-  if (_tared && abs(_rawValue - _tareValue) > TARELIMIT){
+  if (_tared && abs(_smoothValue - _tareValue) > TARELIMIT){
     _tared = false;
   }
 
   if (_calibratingZero) {
     _settings.calibrationZero = _smoothValue;
+
+    for(int i = 0;i<Q2BALANCE_MARKER_COUNT;i++) // Recalc calibrations if zero changed
+    {
+      if(_settings.calibrationScaler[i] != 0){
+        float delta = (float)(_settings.calibrationMV[i] - _settings.calibrationZero);
+        float scaler = (float)_settings.calibrationMeasured[i] / delta;
+        _settings.calibrationScaler[i] =  scaler;
+      }
+    }
+
+    #ifdef Q2BALANCE_DEBUG
+      Serial.println("CALIBRATING ZERO");
+      printCalibrations();
+    #endif
+
     _calibratingZero = false;
     _calibrating = false;
   }
@@ -80,23 +95,17 @@ void Q2Balance::tick(){
 
     _settings.calibrationScaler[_calibrationIndex] =  scaler;
 
-    char str_delta[14];
-    dtostrf(delta, 10, 2, str_delta);
+    #ifdef Q2BALANCE_DEBUG
+      char str_delta[14];
+      dtostrf(delta, 10, 2, str_delta);
+      char str_scale[22];
+      dtostrf(_settings.calibrationScaler[_calibrationIndex], 2, 18, str_scale);
+      char buffer[100];
+      sprintf(buffer, "CALIBRATING %s %s", str_delta, str_scale);
+      Serial.println(buffer);
+      printCalibrations();
+    #endif
 
-    char str_scale[22];
-    dtostrf(_settings.calibrationScaler[_calibrationIndex], 2, 18, str_scale);
-
-    // printCalibration(_calibrationIndex);
-    // sprintf(buffer, "CALIBRATE IDX %d MEASURED %ld / (SMOOTH %ld ZERO %ld) = SCALER %s DELTA %s --",
-    //   _calibrationIndex,
-    //   _settings.calibrationMeasured[_calibrationIndex],
-    //   _smoothValue,
-    //   _settings.calibrationZero,
-    //   str_scale,
-    //   str_delta
-    // );
-    // Serial.println(buffer);
-    sortCalibrations();
   }
 }
 
@@ -125,13 +134,19 @@ bool Q2Balance::tared(){
 };
 
 void Q2Balance::calibrateZero(long settleTime){
+  #ifdef Q2BALANCE_DEBUG
+    Serial.println("ZERO");
+  #endif
   _calibratingZero = true;
   _calibrating = true;
   settle(settleTime);
 }
 
 void Q2Balance::calibrate(int index, long measurement, long settleTime){
-  if (index < 9){
+  #ifdef Q2BALANCE_DEBUG
+    Serial.println("CALIBRATE");
+  #endif
+  if (index < Q2BALANCE_MARKER_COUNT){
     _calibrating = true;
     _calibrationIndex = index;
     _settings.calibrationMeasured[index] = measurement;
@@ -163,63 +178,64 @@ long Q2Balance::jitter(){
   return _jitter;
 }
 
-float Q2Balance::adjustedValue(){
-  long val;
-  // char buffer[128];
-
-  int index = findCalibrationWindow(_smoothValue);
-
+float Q2Balance::calcValue(int units, long value){
   if(_settings.calibrationZero == 0){
     return 0; //unzeroed
   }
 
-  if (index > 9){
-    if (_settings.calibrationScaler[9] == 0){
-      return 0; //uncalibrated
-    } else {
-      index = 9;
+  int index = findCalibrationWindow(_smoothValue);
+
+  if (index == -1){
+    return 0; //uncalibrated
+  }
+  long val = _smoothValue - _tareValue;
+  if (_tared){
+    return (0);
+  }
+
+  float scaled = round(val * _settings.calibrationScaler[index] * 100.0)/100.0;
+
+  if (units > 0){
+
+    switch (units) {
+    case Q2BALANCE_UNIT_POUND:
+      scaled = scaled * 0.002204622;
+      break;
+    case Q2BALANCE_UNIT_OUNCE:
+      scaled = scaled * 0.0352734;
+      break;
+    case Q2BALANCE_UNIT_GRAIN:
+      scaled = scaled * 15.43;
+      break;
+    case Q2BALANCE_UNIT_TROY:
+      scaled = scaled * 0.032;
+      break;
+    case Q2BALANCE_UNIT_PWT:
+      scaled = scaled * 0.643;
+      break;
+    case Q2BALANCE_UNIT_CARAT:
+      scaled = scaled * 5;
+      break;
+    case Q2BALANCE_UNIT_NEWTON:
+      scaled = scaled * 0.009;
+      break;
     }
   }
-  val = _smoothValue - _tareValue;
-  if (_tared){
-    return (0);
-  }
 
-  float scaled = round(val * _settings.calibrationScaler[index] * 100.0)/100.0;
-
-  // char str_scaled[16];
-  // dtostrf(scaled, 6, 4, str_scaled);
-  //
-  // char str_scaler[16];
-  // dtostrf(_settings.calibrationScaler[index], 2, 10, str_scaler);
-  //
-  // sprintf(buffer, "ADJV IDX %d SMOOTH %ld VAL %ld SCALER %s SCALED %s ",
-  //   index,
-  //   _smoothValue,
-  //   val,
-  //   str_scaler,
-  //   str_scaled
-  // );
-  // Serial.println(buffer);
   return scaled;
+
 }
 
-float Q2Balance::adjustedRawValue(){
-  long val;
-  int index = findCalibrationWindow(_rawValue);
-  if (index > 9){
-    return 0; // uncalibrated
-  }
-  val = _rawValue - _tareValue;
-  if (_tared){
-    return (0);
-  }
-  float scaled = round(val * _settings.calibrationScaler[index] * 100.0)/100.0;
-  return scaled;
+float Q2Balance::adjustedValue(int units){
+  return calcValue(_smoothValue, units);
+}
+
+float Q2Balance::adjustedRawValue(int units){
+  return calcValue(_rawValue, units);
 }
 
 void Q2Balance::printCalibrations(){
-  for(int c=0;c<10;c++){
+  for(int c=0;c<Q2BALANCE_MARKER_COUNT;c++){
     printCalibration(c);
   }
 }
@@ -235,42 +251,23 @@ void Q2Balance::printCalibration(int index){
     _settings.calibrationMeasured[index],
     str_scaler
   );
-  Serial.println(buffer);
+  Serial.print(buffer);
 }
 
 int Q2Balance::findCalibrationWindow(long voltage){
-  int i;
-  for (i = 0; i < 10; i++)
+  int i,t=0;
+  for (i = 0; i < Q2BALANCE_MARKER_COUNT; i++)
   {
+    if (_settings.calibrationMV[i] == 0){
+      break;
+    }
     if (_settings.calibrationMV[i] >= voltage){
       break;
     }
+    t = i;
   }
-  return i;
-}
-
-void Q2Balance::sortCalibrations(){
-  long mv, measured;
-  float scaler;
-  int n = 10,c,d;
-  for (c = 0; c < n-1; c++)
-  {
-    int k = (n-c-1);
-    for (d = 0; d < k; d++)
-    {
-      if (_settings.calibrationMV[d] > _settings.calibrationMV[d+1])
-      {
-       mv = _settings.calibrationMV[d];
-       _settings.calibrationMV[d] = _settings.calibrationMV[d+1];
-       _settings.calibrationMV[d+1] = mv;
-       measured = _settings.calibrationMeasured[d];
-       _settings.calibrationMeasured[d] = _settings.calibrationMeasured[d+1];
-       _settings.calibrationMeasured[d+1] = measured;
-       scaler = _settings.calibrationScaler[d];
-       _settings.calibrationScaler[d] = _settings.calibrationScaler[d+1];
-       _settings.calibrationScaler[d+1] = scaler;
-      }
-    }
+  if (_settings.calibrationMV[t] == 0){
+    return -1;
   }
-  // printCalibrations();
+  return t;
 }

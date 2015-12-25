@@ -1,9 +1,28 @@
 # Queuetue Balance Arduino Library
 
-Copyright (c) 2015 Scott Russell (scott@queuetue.com), released under the MIT license.  
+Copyright (c) 2015 Scott Russell (scott@queuetue.com), released under the MIT license.
 See the LICENSE file for licensing details.
 
 A Digital balance library for creating scales on the Arduino, including smoothing, taring and calibration.
+
+## Units
+
+All calibrations and internal calculations use grams, but the adjustedValue and adjustedRawValue functions accept unit values and will return measurements in the appropriate units.  Unit options include Q2BALANCE_UNIT_GRAM, Q2BALANCE_UNIT_POUND, Q2BALANCE_UNIT_OUNCE, Q2BALANCE_UNIT_GRAIN, Q2BALANCE_UNIT_TROY, Q2BALANCE_UNIT_PWT, Q2BALANCE_UNIT_CARAT and Q2BALANCE_UNIT_NEWTON.
+
+Pounds units are returned in fractional pounds, not pounds and ounces.
+
+## Calibration setpoints
+
+Before calibration, the balance will not report a value.  Calibration requires the zero calibration point (the value of the sensor with nothing on it) and one measurement of a known weight to be set.
+Up to 10 calibration setpoints are available to map a sensor's linearity through specific measurement windows.  To behave lie a "normal" digital scale, simply use a single calibration setpoint, index 0. Calibration setpoints must be entered in order, so to set calibrations at 100g, 1000g and 5000g, set them in index 0, 1, and 2 respectively.  If set in this way, measurements between 100 and 5000 g will use the middle index automatically, and measurements over 5000g will use index 2.  As another example, for fine-grained precision, setpoints could be set at 10g, 50g and 100g and used in a similar fashion.
+
+The zero calibration is set by removing all weight from the sensor and calling calibrateZero.
+
+Calibration setpoints are set by calling calibrate with the mass in grams.
+
+## Taring
+
+Taring sets the zero point of the value returned from the scale.  This is separate from the zero calibration point.  Taring allows a scale user to reset "zero" for successive weighings.
 
 ## Class
 The **Q2Balance** class handles all balance functions.  It takes no construction arguments.

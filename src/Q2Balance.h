@@ -2,13 +2,23 @@
 #define q2balance_h
 #include "Arduino.h"
 
-#define Q2_BALANCE_VERSION 010002
+#define Q2BALANCE_MARKER_COUNT 10
+// #define Q2BALANCE_DEBUG
+
+#define Q2BALANCE_UNIT_GRAM 0
+#define Q2BALANCE_UNIT_POUND 1
+#define Q2BALANCE_UNIT_OUNCE 2
+#define Q2BALANCE_UNIT_GRAIN 3
+#define Q2BALANCE_UNIT_TROY 4
+#define Q2BALANCE_UNIT_PWT 5
+#define Q2BALANCE_UNIT_CARAT 6
+#define Q2BALANCE_UNIT_NEWTON 7
 
 struct BalanceCalibrationStruct {
   long calibrationZero;
-  long calibrationMV[10];
-  long calibrationMeasured[10];
-  float calibrationScaler[10];
+  long calibrationMV[Q2BALANCE_MARKER_COUNT];
+  long calibrationMeasured[Q2BALANCE_MARKER_COUNT];
+  float calibrationScaler[Q2BALANCE_MARKER_COUNT];
 };
 
 class Q2Balance
@@ -32,17 +42,19 @@ class Q2Balance
     int findCalibrationWindow(long voltage);
     void printCalibration(int index);
     void printCalibrations();
+    float calcValue(int units, long value);
   public:
     long TARELIMIT = 110;
     long JUMPLIMIT = 200;
     long SAMPLE_COUNT = 10;
+    bool LOGGING = false;
     Q2Balance();
     virtual ~Q2Balance();
     bool taring();
     bool tared();
     bool settling();
-    float adjustedValue();
-    float adjustedRawValue();
+    float adjustedValue(int units);
+    float adjustedRawValue(int units);
     long smoothValue();
     long rawValue();
     long jitter();

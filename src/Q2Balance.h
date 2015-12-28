@@ -52,6 +52,7 @@ class Q2Balance
     bool taring();
     bool tared();
     bool settling();
+    bool calibrating();
     float adjustedValue(int units);
     float adjustedRawValue(int units);
     long smoothValue();

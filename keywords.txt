@@ -26,6 +26,7 @@ rawValue				KEYWORD2
 jitter				KEYWORD2
 calibrateZero				KEYWORD2
 calibrate				KEYWORD2
+calibrating				KEYWORD2
 measure				KEYWORD2
 tare				KEYWORD2
 settle				KEYWORD2

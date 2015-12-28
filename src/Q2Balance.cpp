@@ -115,6 +115,10 @@ bool Q2Balance::settling(){
   return _settling;
 };
 
+bool Q2Balance::calibrating(){
+  return _calibrating;
+};
+
 void Q2Balance::tare(long settleTime, void (*afterTared)(void)){
   if (!_calibrating && !_settling){
     _taring = true;

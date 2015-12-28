@@ -38,9 +38,6 @@ void Q2Balance::setCalibration(BalanceCalibrationStruct newSettings){
 void Q2Balance::tick(){
   unsigned long now = millis();
   if (_settling){
-    #ifdef Q2BALANCE_DEBUG
-      Serial.println("SETTLING");
-    #endif
     if (_smoothValue < _settleMinVal){
       _settleMinVal = _smoothValue;
     }
@@ -82,11 +79,6 @@ void Q2Balance::tick(){
       }
     }
 
-    #ifdef Q2BALANCE_DEBUG
-      Serial.println("CALIBRATING ZERO");
-      printCalibrations();
-    #endif
-
     _calibratingZero = false;
     _calibrating = false;
 
@@ -105,16 +97,6 @@ void Q2Balance::tick(){
 
     _settings.calibrationScaler[_calibrationIndex] =  scaler;
 
-    #ifdef Q2BALANCE_DEBUG
-      char str_delta[14];
-      dtostrf(delta, 10, 2, str_delta);
-      char str_scale[22];
-      dtostrf(_settings.calibrationScaler[_calibrationIndex], 2, 18, str_scale);
-      char buffer[100];
-      sprintf(buffer, "CALIBRATING %s %s", str_delta, str_scale);
-      Serial.println(buffer);
-      printCalibrations();
-    #endif
     if (_afterCalibrated!=NULL){
       (*_afterCalibrated)();
       _afterCalibrated = NULL;
@@ -151,9 +133,6 @@ bool Q2Balance::tared(){
 
 void Q2Balance::calibrateZero(long settleTime, void (*afterCalibrated)(void)){
   if (!_calibrating && !_settling){
-    #ifdef Q2BALANCE_DEBUG
-      Serial.println("ZERO");
-    #endif
     _afterCalibrated = afterCalibrated;
     _calibratingZero = true;
     _calibrating = true;
@@ -163,9 +142,6 @@ void Q2Balance::calibrateZero(long settleTime, void (*afterCalibrated)(void)){
 
 void Q2Balance::calibrate(int index, long measurement, long settleTime, void (*afterCalibrated)(void)){
   if (!_calibrating && !_settling){
-    #ifdef Q2BALANCE_DEBUG
-      Serial.println("CALIBRATE");
-    #endif
     if (index < Q2BALANCE_MARKER_COUNT){
       _afterCalibrated = afterCalibrated;
       _calibrating = true;

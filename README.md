@@ -40,6 +40,7 @@ float | adjustedValue | The current value with smoothing and adjusted for calibr
 float | adjustedRawValue | The current value without smoothing and adjusted for calibration and taring.  If no calibration markers are set, 0 is returned.
 none | calibrateZero | Set the "zero" calibration for the balance.  Requires a parameter, milliseconds to wait for settling. Accepts callback.
 none | calibrate | Set a calibration marker - requires  calibration index (0-9), the calibration mass (in mg - 1000 for 1kg) and # milliseconds to wait for settling. Accepts callback.
+none | calibrating | True if the balance is currently calibrating.
 Struct| getCalibration | get the current calibration data (for saving too EEPROM etc).
 long | jitter | The amount of "jitter" or noise collected during the last settle.
 void | measure | register a new measurement with the balance. Requires a long value.

@@ -190,7 +190,7 @@ float Q2Balance::calcValue(int units, long value){
   if (index == -1){
     return 0; //uncalibrated
   }
-  long val = _smoothValue - _tareValue;
+  long val = _smoothValue - _tareValue - _settings.calibrationZero;
   if (_tared){
     return (0);
   }

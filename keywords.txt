@@ -6,8 +6,8 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-Q2Balance	KEYWORD1	Q2Balance
-BalanceCalibrationStruct	KEYWORD1	BalanceCalibrationStruct
+Q2Balance	KEYWORD1
+BalanceCalibrationStruct	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
